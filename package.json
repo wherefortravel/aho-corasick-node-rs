@@ -24,6 +24,8 @@
     "install": "node-pre-gyp install --fallback-to-build=false || neon build --release",
     "package": "node-pre-gyp package",
     "build": "neon build",
+    "build:release": "neon build --release",
+    "bench": "node lib/index.bench.js",
     "test": "jest lib",
     "upload-binary": "node-pre-gyp package && node-pre-gyp-github publish"
   },
@@ -44,6 +46,8 @@
     "url": "git+https://github.com/wherefortravel/aho-corasick-node-rs.git"
   },
   "devDependencies": {
+    "aho-corasick-node": "^1.0.2",
+    "benchmark": "^2.1.4",
     "jest": "^24.9.0"
   }
 }

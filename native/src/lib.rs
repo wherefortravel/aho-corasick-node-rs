@@ -11,12 +11,7 @@ pub class JsAhoCorasick for AhoCorasick {
         let arr = cx.argument::<JsArray>(0)?;
         let inputs = arr.to_vec(&mut cx)?;
 
-        let mut v: Vec<String> = Vec::new();
-
-        for s in inputs {
-            let str = s.downcast::<JsString>().unwrap();
-            v.push(str.value())
-        }
+        let v: Vec<String> = inputs.into_iter().map(|x| x.downcast::<JsString>().unwrap().value()).collect();
 
         Ok(AhoCorasick::new(v))
     }
