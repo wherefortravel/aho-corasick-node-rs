@@ -1,0 +1,43 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:12.10-buster
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Rust
+          command: |
+            curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
+            sh /tmp/rustup.sh -y
+
+      - restore_cache:
+          keys:
+            - npm-dependencies-{{ checksum "yarn.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - npm-dependencies-
+
+      - run:
+          name: Install deps
+          command: |
+            yarn install --dev
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: npm-dependencies-{{ checksum "yarn.lock" }}
+
+      - run:
+          name: Build and test
+          command: |
+            yarn package
+            yarn test
+
+      - run:
+          name: Publish
+          command: |
+            yarn upload-binary
