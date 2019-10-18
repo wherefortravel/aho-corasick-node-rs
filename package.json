@@ -6,6 +6,7 @@
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
   "license": "MIT",
   "dependencies": {
+    "node-pre-gyp": "^0.13.0"
   },
   "engines": {
     "node": ">=10.12.0"
@@ -47,7 +48,6 @@
     "benchmark": "^2.1.4",
     "jest": "^24.9.0",
     "neon-cli": "0.3.1",
-    "node-pre-gyp": "^0.13.0",
     "node-pre-gyp-github": "^1.4.3"
   }
 }
