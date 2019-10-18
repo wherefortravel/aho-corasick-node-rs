@@ -1,0 +1,18 @@
+[package]
+name = "aho-corasick-node-rs"
+version = "0.1.0"
+authors = ["Vladimir Skvortsov <vlad@whereto.com>"]
+license = "MIT"
+build = "build.rs"
+exclude = ["artifacts.json", "index.node"]
+
+[lib]
+name = "aho_corasick_node_rs"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+neon-build = "0.3.1"
+
+[dependencies]
+neon = "0.3.1"
+aho-corasick = "0.7.6"
