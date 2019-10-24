@@ -1,6 +1,6 @@
 [package]
 name = "aho-corasick-node-rs"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Vladimir Skvortsov <vlad@whereto.com>"]
 license = "MIT"
 build = "build.rs"
