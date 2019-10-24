@@ -3,7 +3,7 @@ extern crate neon;
 extern crate aho_corasick;
 
 use neon::prelude::*;
-use aho_corasick::AhoCorasick;
+use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
 
 declare_types! {
 pub class JsAhoCorasick for AhoCorasick {
@@ -13,7 +13,11 @@ pub class JsAhoCorasick for AhoCorasick {
 
         let v: Vec<String> = inputs.into_iter().map(|x| x.downcast::<JsString>().unwrap().value()).collect();
 
-        Ok(AhoCorasick::new(v))
+        Ok(
+            AhoCorasickBuilder::new()
+                .match_kind(MatchKind::LeftmostFirst)
+                .build(v)
+        )
     }
 
     method find_iter(mut cx) {
