@@ -1,6 +1,6 @@
 {
   "name": "aho-corasick-node-rs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Aho-Corasick Rust library Node.js bindings",
   "main": "lib/index.js",
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
@@ -36,7 +36,11 @@
     "pkg_path": "."
   },
   "files": [
-    "lib"
+    "lib",
+    "native/src",
+    "native/build.rs",
+    "native/Cargo.lock",
+    "native/Cargo.toml"
   ],
   "repository": {
     "type": "git",

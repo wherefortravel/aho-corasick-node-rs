@@ -1,43 +1,69 @@
 version: 2
+
+neon-build: &neon-build-anchor
+  steps:
+    - checkout
+    - run:
+        name: Install Rust
+        command: |
+          curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
+          sh /tmp/rustup.sh -y
+
+    - restore_cache:
+        keys:
+          - npm-dependencies-{{ checksum "yarn.lock" }}
+          - npm-dependencies-
+
+    - run:
+        name: Install deps
+        command: |
+          yarn install --dev
+
+    - save_cache:
+        paths:
+          - node_modules
+        key: npm-dependencies-{{ checksum "yarn.lock" }}
+
+    - run:
+        name: Build and test
+        command: |
+          yarn package
+          yarn test
+
+    - run:
+        name: Publish
+        command: |
+          yarn upload-binary
+
 jobs:
-  build:
+  build_v12:
     docker:
-      - image: circleci/node:12.10-buster
+      - image: circleci/node:12
 
     working_directory: ~/repo
 
-    steps:
-      - checkout
+    <<: *neon-build-anchor
 
-      - run:
-          name: Install Rust
-          command: |
-            curl https://sh.rustup.rs -sSf > /tmp/rustup.sh
-            sh /tmp/rustup.sh -y
+  build_v13:
+    docker:
+      - image: circleci/node:13
 
-      - restore_cache:
-          keys:
-            - npm-dependencies-{{ checksum "yarn.lock" }}
-            # fallback to using the latest cache if no exact match is found
-            - npm-dependencies-
+    working_directory: ~/repo
 
-      - run:
-          name: Install deps
-          command: |
-            yarn install --dev
+    <<: *neon-build-anchor
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: npm-dependencies-{{ checksum "yarn.lock" }}
+  build_v14:
+    docker:
+      - image: circleci/node:14
 
-      - run:
-          name: Build and test
-          command: |
-            yarn package
-            yarn test
+    working_directory: ~/repo
 
-      - run:
-          name: Publish
-          command: |
-            yarn upload-binary
+    <<: *neon-build-anchor
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build_v12
+      - build_v13
+      - build_v14
