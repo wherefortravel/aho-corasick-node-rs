@@ -1,6 +1,6 @@
 {
   "name": "aho-corasick-node-rs",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Aho-Corasick Rust library Node.js bindings",
   "main": "lib/index.js",
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
