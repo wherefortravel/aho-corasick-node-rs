@@ -1,6 +1,6 @@
 {
   "name": "aho-corasick-node-rs",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Aho-Corasick Rust library Node.js bindings",
   "main": "lib/index.js",
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
@@ -16,7 +16,8 @@
     "linux"
   ],
   "cpu": [
-    "x64"
+    "x64",
+    "arm64"
   ],
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build=false || PATH=$HOME/.cargo/bin:$PATH neon build --release",
