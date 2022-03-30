@@ -6,7 +6,7 @@
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
   "license": "MIT",
   "dependencies": {
-    "node-pre-gyp": "^0.13.0"
+    "@mapbox/node-pre-gyp": "^1.0.8"
   },
   "engines": {
     "node": ">=10.12.0"
@@ -51,7 +51,7 @@
     "aho-corasick-node": "^1.0.2",
     "benchmark": "^2.1.4",
     "jest": "^24.9.0",
-    "neon-cli": "0.3.1",
+    "neon-cli": "0.10.0",
     "node-pre-gyp-github": "^1.4.3"
   }
 }
