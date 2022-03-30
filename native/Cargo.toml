@@ -11,8 +11,8 @@ name = "aho_corasick_node_rs"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-neon-build = "0.3.1"
+neon-build = "0.10.0"
 
 [dependencies]
-neon = "0.3.1"
+neon = "0.10.0"
 aho-corasick = "0.7.6"
