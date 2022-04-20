@@ -50,7 +50,7 @@
   "devDependencies": {
     "aho-corasick-node": "^1.0.2",
     "benchmark": "^2.1.4",
-    "jest": "^24.9.0",
+    "jest": "^27.5.1",
     "neon-cli": "0.10.0",
     "node-pre-gyp-github": "^1.4.3"
   }
