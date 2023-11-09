@@ -1,12 +1,12 @@
 {
   "name": "aho-corasick-node-rs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Aho-Corasick Rust library Node.js bindings",
   "main": "lib/index.js",
   "author": "Vladimir Skvortsov <vlad@whereto.com>",
   "license": "MIT",
   "dependencies": {
-    "@mapbox/node-pre-gyp": "^1.0.8"
+    "@mapbox/node-pre-gyp": "^1.0.11"
   },
   "engines": {
     "node": ">=10.12.0"
@@ -51,7 +51,7 @@
     "aho-corasick-node": "^1.0.2",
     "benchmark": "^2.1.4",
     "jest": "^27.5.1",
-    "neon-cli": "0.10.0",
-    "node-pre-gyp-github": "^1.4.3"
+    "neon-cli": "^0.10.1",
+    "node-pre-gyp-github": "^1.4.4"
   }
 }
