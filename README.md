@@ -1,5 +1,7 @@
 # aho-corasick-node-rs
 
+Current Node Version: 22.8
+
 [https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm][Aho-Corasick] Rust library Node.js bindings
 
 ## How do I use it?
@@ -21,12 +23,22 @@ console.log(matches)
 
 ## Build and Deployment
 
-1. Make sure that you have the correct node version selected - `nvm use`
+There are a number of releases packages that are to be built and applied to the release.
+
+The following steps need to be done for each of the platforms we are using. Please see [https://github.com/wherefortravel/aho-corasick-node-rs/releases][Releases].
+
+1. Make sure that you have the correct node version selected - `nvm use [current node version]`
 2. Run `npm i -g yarn`
 3. Run `yarn`
+4. Run `yarn run build:release`
+5. Run `yarn run upload-binary`
 
-For building use the build actions in the package.json.
+We need to make sure that the `native/index.node` file is of type **ELF**. If it is Mach-O there is a problem and the run will not work in the container.
 
-For deployment run `yarn run upload-binary`. This will build the release but does not actually place the binary anywhere remote. You will be provided a path of the tar.gz file. Upload this file to Github release _manually_. 
+You can run the steps above using different platforms.
 
-Note: the build will output the specific platform build for the platform you are running. For example: darwin.arm64 for mac with arm.
+```shell
+docker run --rm -it --entrypoint "" --platform=linux/arm64 -v ./:/node-rs node:22.8 /bin/bash
+```
+
+Use docker containers with required platform settings to build and output required release packages.
