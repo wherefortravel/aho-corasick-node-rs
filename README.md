@@ -28,3 +28,5 @@ console.log(matches)
 For building use the build actions in the package.json.
 
 For deployment run `yarn run upload-binary`. This will build the release but does not actually place the binary anywhere remote. You will be provided a path of the tar.gz file. Upload this file to Github release _manually_. 
+
+Note: the build will output the specific platform build for the platform you are running. For example: darwin.arm64 for mac with arm.
