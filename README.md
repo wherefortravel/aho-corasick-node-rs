@@ -39,7 +39,7 @@ With each new change, make sure to bump the package version. Please follow seman
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 4. navigate to the project - `cd /node-rs`
-5. Run `rm native/index.node`
+5. Run `rm -Rf native/target native/index.node`
 6. Run `yarn`
 7. Run `yarn run build:release`
 8. Run `yarn run upload-binary`
