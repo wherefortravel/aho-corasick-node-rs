@@ -42,3 +42,12 @@ docker run --rm -it --entrypoint "" --platform=linux/arm64 -v ./:/node-rs node:2
 ```
 
 Use docker containers with required platform settings to build and output required release packages.
+
+## Bumping Version and Creating Release
+With each new change, make sure to bump the package version. Please follow semantic versioning with regards to major, minor and patch version due to changes, updates or breaking changes. See [https://semver.org/][Semantic Versioning].
+
+1. bump the package version
+2. build and public the version
+3. follow the build and deploy above
+4. create a release based on that version
+5. upload all the relevant platform build versions
