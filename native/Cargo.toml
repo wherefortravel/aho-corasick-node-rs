@@ -1,18 +1,16 @@
 [package]
 name = "aho-corasick-node-rs"
-version = "0.1.1"
+version = "0.1.9"
 authors = ["Vladimir Skvortsov <vlad@whereto.com>"]
 license = "MIT"
-build = "build.rs"
-exclude = ["artifacts.json", "index.node"]
+edition = "2021"
 
 [lib]
 name = "aho_corasick_node_rs"
 crate-type = ["cdylib"]
 
-[build-dependencies]
-neon-build = "0.10.0"
-
 [dependencies]
-neon = "0.10.1"
+# Node-API: one binary per platform works on every Node version (no per-ABI builds).
+neon = { version = "1.1", default-features = false, features = ["napi-6"] }
+# Kept on 0.7 (locked 0.7.18) so match semantics stay identical to 0.1.8.
 aho-corasick = "0.7.6"

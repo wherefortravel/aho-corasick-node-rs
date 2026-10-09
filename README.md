@@ -1,6 +1,7 @@
 # aho-corasick-node-rs
 
-Current Node Version: 22.8
+Works on any Node.js version with Node-API 6 (Node >= 10.20), including Node 22 and 24: the binary is
+built against Node-API, so there is one prebuilt binary per platform rather than one per Node ABI.
 
 [https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm][Aho-Corasick] Rust library Node.js bindings
 
@@ -23,32 +24,21 @@ console.log(matches)
 
 ## Build and Deployment
 
-There are a number of packages that are to be built and applied to the release.
+Binaries are built and attached to releases by `.github/workflows/build.yml`:
 
-The following steps need to be done for each of the platforms we are using. Please see [https://github.com/wherefortravel/aho-corasick-node-rs/releases][Releases].
+- Every pull request builds `napi-{linux,darwin}-{x64,arm64}.tar.gz` and tests each one on Node 22
+  and Node 24, including `lib/parity.test.js`, which replays 6000+ recorded inputs against the
+  output of the 0.1.8 build.
+- Pushing a tag equal to the `package.json` version (e.g. `0.1.9`) does the same and then creates
+  the GitHub release with the four tarballs. `node-pre-gyp` downloads them from
+  `https://github.com/wherefortravel/aho-corasick-node-rs/releases/download/<version>/` at install.
 
-With each new change, make sure to bump the package version. Please follow semantic versioning with regards to major, minor and patch version due to changes, updates or breaking changes. See [https://semver.org/][Semantic Versioning].
+To release:
 
-1. bump the package version - ex. 0.1.6 to 0.1.7
-2. run a container with the target platform
-```
-  docker run --rm -it --entrypoint "" --platform=linux/x86 -v ./:/node-rs node:22.8 /bin/bash
-```
-3. install rust
-```
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
-4. navigate to the project - `cd /node-rs`
-5. Run `rm -Rf native/target native/index.node`
-6. Run `yarn`
-7. Run `yarn run build:release`
-8. Run `yarn run upload-binary`
+1. Bump `version` in `package.json` and `native/Cargo.toml` (semver), merge to `master`.
+2. Tag the merge commit with the version (no `v` prefix) and push the tag.
+3. When the release exists, publish the npm package to the internal registry.
 
-We need to make sure that the `native/index.node` file is of type **ELF**. If it is Mach-O there is a problem and the run will not work in the container.
-
-You can run the steps above using different platforms.
-
-```
-docker run --rm -it --entrypoint "" --platform=linux/x86 -v ./:/node-rs node:22.8 /bin/bash
-docker run --rm -it --entrypoint "" --platform=linux/arm64 -v ./:/node-rs node:22.8 /bin/bash
-```
+Local development needs a Rust toolchain (`rustup`): `yarn build` (debug) or `yarn build:release`
+writes `prebuilt/index.node`; `yarn test` runs the tests. If no prebuilt binary matches at install
+time, the install script falls back to building from source with `cargo`.

@@ -1,0 +1,149 @@
+name: Build
+
+# Builds the Node-API binary for every supported platform, tests it on each
+# supported Node major, and attaches the binaries to the GitHub release when a
+# version tag (e.g. 0.1.9) is pushed. node-pre-gyp downloads them at install:
+#   https://github.com/wherefortravel/aho-corasick-node-rs/releases/download/<version>/napi-<platform>-<arch>.tar.gz
+on:
+  pull_request:
+  push:
+    branches: [master]
+    tags: ['[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}-${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds run in bullseye (glibc 2.31) so the binary also loads on
+          # older glibc than the runner's, e.g. Debian bookworm images.
+          - { platform: linux, arch: x64, runner: ubuntu-latest, container: 'node:22-bullseye' }
+          - { platform: linux, arch: arm64, runner: ubuntu-24.04-arm, container: 'node:22-bullseye' }
+          - { platform: darwin, arch: arm64, runner: macos-latest }
+          - { platform: darwin, arch: x64, runner: macos-latest, rust_target: x86_64-apple-darwin }
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        shell: bash
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Add cross-compile target
+        if: matrix.rust_target
+        shell: bash
+        run: rustup target add ${{ matrix.rust_target }}
+
+      - uses: actions/setup-node@v4
+        if: ${{ !matrix.container }}
+        with:
+          node-version: 22
+
+      - name: Install JS dependencies
+        shell: bash
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Build prebuilt/index.node
+        shell: bash
+        env:
+          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
+        run: node scripts/build-native.js
+
+      - name: Package
+        shell: bash
+        run: |
+          npx node-pre-gyp package --target_platform=${{ matrix.platform }} --target_arch=${{ matrix.arch }}
+          mkdir -p dist
+          cp build/stage/*/napi-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz dist/
+          tar -tzvf dist/*.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: napi-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/napi-${{ matrix.platform }}-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+
+  test:
+    name: Test ${{ matrix.platform }}-${{ matrix.arch }} on Node ${{ matrix.node }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+        target:
+          - { platform: linux, arch: x64, runner: ubuntu-latest }
+          - { platform: linux, arch: arm64, runner: ubuntu-24.04-arm }
+          - { platform: darwin, arch: arm64, runner: macos-latest }
+          # Runs the x64 binary under Rosetta with an x64 Node.
+          - { platform: darwin, arch: x64, runner: macos-latest }
+    runs-on: ${{ matrix.target.runner }}
+    container: ${{ matrix.target.platform == 'linux' && format('node:{0}-bookworm-slim', matrix.node) || null }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        if: matrix.target.platform == 'darwin'
+        with:
+          node-version: ${{ matrix.node }}
+          architecture: ${{ matrix.target.arch }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: napi-${{ matrix.target.platform }}-${{ matrix.target.arch }}
+          path: artifact
+
+      - name: Unpack binary
+        shell: bash
+        run: |
+          tar -xzf artifact/napi-${{ matrix.target.platform }}-${{ matrix.target.arch }}.tar.gz
+          node -p "process.version + ' ' + process.platform + '-' + process.arch"
+          node -e "require('./prebuilt/index.node'); console.log('loaded')"
+
+      - name: Install JS dependencies
+        shell: bash
+        run: yarn install --frozen-lockfile --ignore-scripts
+
+      - name: Test (API + parity with 0.1.8)
+        shell: bash
+        run: yarn test
+
+  release:
+    name: Attach binaries to release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches package.json
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $VERSION"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: napi-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ls -l artifacts/
+          gh release create "$GITHUB_REF_NAME" artifacts/napi-*.tar.gz \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
+            --notes "Node-API binaries (one per platform, any Node version >= 10.20)."

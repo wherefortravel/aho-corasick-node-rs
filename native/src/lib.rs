@@ -1,57 +1,53 @@
-#[macro_use]
-extern crate neon;
-extern crate aho_corasick;
-
-use neon::prelude::*;
 use aho_corasick::{AhoCorasick, AhoCorasickBuilder, MatchKind};
+use neon::prelude::*;
 
-declare_types! {
-pub class JsAhoCorasick for AhoCorasick {
-    init(mut cx) {
-        let arr = cx.argument::<JsArray>(0)?;
-        let inputs = arr.to_vec(&mut cx)?;
+struct Automaton(AhoCorasick);
 
-        let v: Vec<String> = inputs.into_iter().map(|x| x.downcast::<JsString>().unwrap().value()).collect();
+impl Finalize for Automaton {}
 
-        Ok(
-            AhoCorasickBuilder::new()
-                .match_kind(MatchKind::LeftmostFirst)
-                .build(v)
-        )
-    }
+/// build(patterns: string[]) -> opaque automaton handle
+fn build(mut cx: FunctionContext) -> JsResult<JsBox<Automaton>> {
+    let values = cx.argument::<JsArray>(0)?.to_vec(&mut cx)?;
+    let patterns = values
+        .into_iter()
+        .map(|value| Ok(value.downcast_or_throw::<JsString, _>(&mut cx)?.value(&mut cx)))
+        .collect::<NeonResult<Vec<String>>>()?;
 
-    method find_iter(mut cx) {
-        let this = cx.this();
-        let s = cx.argument::<JsString>(0)?;
+    let automaton = AhoCorasickBuilder::new()
+        .match_kind(MatchKind::LeftmostFirst)
+        .build(patterns);
 
-        let mut matches = vec![];
-
-        {
-            let guard = cx.lock();
-            let ac = this.borrow(&guard);
-
-            for mat in ac.find_iter(&s.value()) {
-                matches.push(vec![mat.pattern(), mat.start(), mat.end()]);
-            }
-        }
-
-        let js_array = JsArray::new(&mut cx, matches.len() as u32);
-
-        for (i, obj) in matches.iter().enumerate() {
-            let inner_arr = JsArray::new(&mut cx, 3);
-            for j in 0..3 {
-                let js_num = cx.number(obj[j] as f64);
-                inner_arr.set(&mut cx, j as u32, js_num).unwrap();
-            }
-
-            js_array.set(&mut cx, i as u32, inner_arr).unwrap();
-        }
-
-        Ok(js_array.upcast())
-    }
- }
+    Ok(cx.boxed(Automaton(automaton)))
 }
 
-register_module!( mut cx, {
-    cx.export_class::<JsAhoCorasick>("AhoCorasick")
-});
+/// findIter(automaton, haystack: string) -> [pattern, start, end][]
+/// start/end are UTF-8 byte offsets, as in 0.1.8.
+fn find_iter(mut cx: FunctionContext) -> JsResult<JsArray> {
+    let automaton = cx.argument::<JsBox<Automaton>>(0)?;
+    let haystack = cx.argument::<JsString>(1)?.value(&mut cx);
+
+    let matches: Vec<[usize; 3]> = automaton
+        .0
+        .find_iter(&haystack)
+        .map(|m| [m.pattern(), m.start(), m.end()])
+        .collect();
+
+    let result = cx.empty_array();
+    for (i, triple) in matches.iter().enumerate() {
+        let js_triple = cx.empty_array();
+        for (j, n) in triple.iter().enumerate() {
+            let js_number = cx.number(*n as f64);
+            js_triple.set(&mut cx, j as u32, js_number)?;
+        }
+        result.set(&mut cx, i as u32, js_triple)?;
+    }
+
+    Ok(result)
+}
+
+#[neon::main]
+fn main(mut cx: ModuleContext) -> NeonResult<()> {
+    cx.export_function("build", build)?;
+    cx.export_function("findIter", find_iter)?;
+    Ok(())
+}
