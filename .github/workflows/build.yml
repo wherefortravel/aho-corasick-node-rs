@@ -57,7 +57,7 @@ jobs:
       - name: Build prebuilt/index.node
         shell: bash
         env:
-          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
+          RUST_TARGET: ${{ matrix.rust_target }}
         run: node scripts/build-native.js
 
       - name: Package
@@ -75,7 +75,7 @@ jobs:
           if-no-files-found: error
 
   test:
-    name: Test ${{ matrix.platform }}-${{ matrix.arch }} on Node ${{ matrix.node }}
+    name: Test ${{ matrix.target.platform }}-${{ matrix.target.arch }} on Node ${{ matrix.node }}
     needs: build
     strategy:
       fail-fast: false

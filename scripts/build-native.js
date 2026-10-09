@@ -5,7 +5,8 @@ const path = require('path')
 
 const nativeDir = path.join(__dirname, '..', 'native')
 const profile = process.argv.includes('--debug') ? 'debug' : 'release'
-const target = process.env.CARGO_BUILD_TARGET
+// Not CARGO_BUILD_TARGET: cargo reads that itself and rejects an empty value.
+const target = process.env.RUST_TARGET || undefined
 
 const cargoArgs = ['build', '--manifest-path', path.join(nativeDir, 'Cargo.toml')]
 if (profile === 'release') cargoArgs.push('--release')
