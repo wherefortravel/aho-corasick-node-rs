@@ -5,10 +5,13 @@ name: Build
 # version tag (e.g. 0.1.9) is pushed. node-pre-gyp downloads them at install:
 #   https://github.com/wherefortravel/aho-corasick-node-rs/releases/download/<version>/napi-<platform>-<arch>.tar.gz
 on:
-  pull_request:
   push:
-    branches: [master]
+    branches: ['**']
+    # Bare version tags only (e.g. 0.1.9, like 0.1.8 before it): node-pre-gyp downloads from
+    # releases/download/<package.json version>/, so a v-prefixed tag would 404 every install.
     tags: ['[0-9]+.[0-9]+.[0-9]+']
+  pull_request:
+    branches: [master]
 
 permissions:
   contents: read
